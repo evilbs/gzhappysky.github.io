@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   
-  <title>egg_logger | 易国勇的个人博客 | 易国勇</title>
+  <title>egg_logger 原码分析 | 易国勇的个人博客 | 易国勇</title>
 
   
   <meta name="author" content="guoyong .yi">
@@ -22,7 +22,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-  <meta property="og:title" content="egg_logger"/>
+  <meta property="og:title" content="egg_logger 原码分析"/>
 
   <meta property="og:site_name" content="易国勇的个人博客"/>
 
@@ -50,9 +50,9 @@
   <nav class="site-navigation">
     <ul>
       
-        <li><a href="/">Home</a></li>
+        <li><a href="/">主页</a></li>
       
-        <li><a href="/archives">Archives</a></li>
+        <li><a href="/archives">归档</a></li>
       
     </ul>
   </nav>
@@ -63,7 +63,7 @@
 
   
     
-    <h3 class="article-title"><span>egg_logger</span></h3>
+    <h3 class="article-title"><span>egg_logger 原码分析</span></h3>
     
   
 
@@ -84,7 +84,7 @@
     <div class="entry">
       
         <h3 id="egg-的日志处理"><a href="#egg-的日志处理" class="headerlink" title="egg 的日志处理"></a>egg 的日志处理</h3><p>日志是对系统进行有效的监控，在后期问题排查、功能改进、优化都起到非常大的作用，egg也提供了一套日志的解决方案。</p>
-<h3 id="egg-日志使用方法"><a href="#egg-日志使用方法" class="headerlink" title="egg 日志使用方法"></a>egg 日志使用方法</h3><p>1.定义配置参数，egg的默认配置为，文件名称:egg/lib/core/config.default.js<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">exports.logger = &#123;</div><div class="line">    dir: path.join(antx[&apos;app.root&apos;], &apos;logs&apos;, antx[&apos;app.name&apos;]),</div><div class="line">    encoding: &apos;utf8&apos;,</div><div class="line">    env: antx.env,  //环境，如env,pro,test</div><div class="line">    level: &apos;INFO&apos;,  //级别</div><div class="line">    consoleLevel: &apos;INFO&apos;,  </div><div class="line">    outputJSON: false,</div><div class="line">    buffer: true,  // 输出到文件时是否启用缓冲</div><div class="line">    appLogName: `$&#123;antx[&apos;app.name&apos;]&#125;-web.log`,</div><div class="line">    coreLogName: &apos;egg-web.log&apos;,</div><div class="line">    agentLogName: &apos;egg-agent.log&apos;,</div><div class="line">    errorLogName: &apos;common-error.log&apos;,</div><div class="line">    coreLogger: &#123; //针对coreLogger分类定义特殊的分类，其它分类也是相同处理，如errorLog，agentLog</div><div class="line">        level: &apos;ERROR&apos;</div><div class="line">    &#125;, </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<h3 id="egg-日志使用方法"><a href="#egg-日志使用方法" class="headerlink" title="egg 日志使用方法"></a>egg 日志使用方法</h3><p>1.定义配置参数，egg的默认配置在egg模块中定义，文件地址:egg/lib/core/config.default.js<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">exports.logger = &#123;</div><div class="line">    dir: path.join(antx[&apos;app.root&apos;], &apos;logs&apos;, antx[&apos;app.name&apos;]),</div><div class="line">    encoding: &apos;utf8&apos;,</div><div class="line">    env: antx.env,  //环境，如env,pro,test</div><div class="line">    level: &apos;INFO&apos;,  //级别</div><div class="line">    consoleLevel: &apos;INFO&apos;,  </div><div class="line">    outputJSON: false,</div><div class="line">    buffer: true,  // 输出到文件时是否启用缓冲</div><div class="line">    appLogName: `$&#123;antx[&apos;app.name&apos;]&#125;-web.log`,</div><div class="line">    coreLogName: &apos;egg-web.log&apos;,</div><div class="line">    agentLogName: &apos;egg-agent.log&apos;,</div><div class="line">    errorLogName: &apos;common-error.log&apos;,</div><div class="line">    coreLogger: &#123; //针对coreLogger分类定义特殊的分类，其它分类也是相同处理，如errorLog，agentLog</div><div class="line">        level: &apos;ERROR&apos;</div><div class="line">    &#125;, </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
 <p>2.egg的配置文件加载是通过<a href="https://eggjs.org/zh-cn/advanced/loader.html" target="_blank" rel="external">Loader机制完成的</a>，所以在项目当中我们可以通过项目配置文件中日志配置参数覆盖默认的日志配置。<br>3.egg日志使用</p>
 <ol>
 <li>系统自动记录未被用户捕获到的错误自动输出到common-error.log中。</li>
