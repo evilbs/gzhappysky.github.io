@@ -91,7 +91,7 @@
 <li>在agent或worker进程中通过  this.logger.info(‘hello error’) 进行写入。</li>
 </ol>
 <p><strong>日志的启动过程</strong><br><img src="/2017/01/16/egg-logger/loggerstartup.jpg" alt="loggerstartup"></p>
-<p>可以从图中看到日志是在Application类中创建的，worker进程在new Application或agent在new Agent时都会创建Loggers类,agent也是继承于Application。</p>
+<p>可以从图中看到日志是在Application类中创建的，worker进程和agent进程都会new Application类，Agent类是继承于Application类。</p>
 <h3 id="日志模块类图，源码在egg-logger模块中"><a href="#日志模块类图，源码在egg-logger模块中" class="headerlink" title="日志模块类图，源码在egg-logger模块中"></a>日志模块类图，源码在egg-logger模块中</h3><p><img src="/2017/01/16/egg-logger/classuml.jpg" alt="classuml"><br>类介绍： </p>
 <ul>
 <li>Loggers：日志管理类，根据配置创建多个分类logger，根据当前不同的进程和不同的配置进行创建coreLogger，logger，errorLogger，或者是一些自定义的logger。</li>
