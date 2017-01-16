@@ -1,0 +1,162 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>egg_logger | 易国勇的个人博客 | 易国勇</title>
+
+  
+  <meta name="author" content="guoyong .yi">
+  
+
+  
+  <meta name="description" content="易国勇的个人博客">
+  
+
+  
+  
+  <meta name="keywords" content="">
+  
+
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <meta property="og:title" content="egg_logger"/>
+
+  <meta property="og:site_name" content="易国勇的个人博客"/>
+
+  
+  <meta property="og:image" content="/favicon.ico"/>
+  
+
+  <link href="/favicon.ico" rel="icon">
+  <link rel="alternate" href="/atom.xml" title="易国勇的个人博客" type="application/atom+xml">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+</head>
+
+
+<body>
+<div class="blog">
+  <div class="content">
+
+    <header>
+  <div class="site-branding">
+    <h1 class="site-title">
+      <a href="/">易国勇的个人博客</a>
+    </h1>
+    <p class="site-description">易国勇</p>
+  </div>
+  <nav class="site-navigation">
+    <ul>
+      
+        <li><a href="/">Home</a></li>
+      
+        <li><a href="/archives">Archives</a></li>
+      
+    </ul>
+  </nav>
+</header>
+
+    <main class="site-main posts-loop">
+    <article>
+
+  
+    
+    <h3 class="article-title"><span>egg_logger</span></h3>
+    
+  
+
+  <div class="article-top-meta">
+    <span class="posted-on">
+      <a href="/2017/01/16/egg-logger/" rel="bookmark">
+        <time class="entry-date published" datetime="2017-01-16T10:50:23.000Z">
+          2017-01-16
+        </time>
+      </a>
+    </span>
+  </div>
+
+
+  
+
+  <div class="article-content">
+    <div class="entry">
+      
+        <h3 id="egg-的日志处理"><a href="#egg-的日志处理" class="headerlink" title="egg 的日志处理"></a>egg 的日志处理</h3><p>日志是对系统进行有效的监控，在后期问题排查、功能改进、优化都起到非常大的作用，egg也提供了一套日志的解决方案。</p>
+<h3 id="egg-日志使用方法"><a href="#egg-日志使用方法" class="headerlink" title="egg 日志使用方法"></a>egg 日志使用方法</h3><p>1.定义配置参数，egg的默认配置为，文件名称:egg/lib/core/config.default.js<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">exports.logger = &#123;</div><div class="line">    dir: path.join(antx[&apos;app.root&apos;], &apos;logs&apos;, antx[&apos;app.name&apos;]),</div><div class="line">    encoding: &apos;utf8&apos;,</div><div class="line">    env: antx.env,  //环境，如env,pro,test</div><div class="line">    level: &apos;INFO&apos;,  //级别</div><div class="line">    consoleLevel: &apos;INFO&apos;,  </div><div class="line">    outputJSON: false,</div><div class="line">    buffer: true,  // 输出到文件时是否启用缓冲</div><div class="line">    appLogName: `$&#123;antx[&apos;app.name&apos;]&#125;-web.log`,</div><div class="line">    coreLogName: &apos;egg-web.log&apos;,</div><div class="line">    agentLogName: &apos;egg-agent.log&apos;,</div><div class="line">    errorLogName: &apos;common-error.log&apos;,</div><div class="line">    coreLogger: &#123; //针对coreLogger分类定义特殊的分类，其它分类也是相同处理，如errorLog，agentLog</div><div class="line">        level: &apos;ERROR&apos;</div><div class="line">    &#125;, </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>2.egg的配置文件加载是通过<a href="https://eggjs.org/zh-cn/advanced/loader.html" target="_blank" rel="external">Loader机制完成的</a>，所以在项目当中我们可以通过项目配置文件中日志配置参数覆盖默认的日志配置。<br>3.egg日志使用</p>
+<ol>
+<li>系统自动记录未被用户捕获到的错误自动输出到common-error.log中。</li>
+<li>在agent或worker进程中通过  this.logger.info(‘hello error’) 进行写入。</li>
+</ol>
+<p><strong>日志的启动过程</strong><br><img src="/2017/01/16/egg-logger/loggerstartup.jpg" alt="loggerstartup"></p>
+<p>可以从图中看到日志是在Application类中创建的，worker进程在new Application或agent在new Agent时都会创建Loggers类,agent也是继承于Application。</p>
+<h3 id="日志模块类图，源码在egg-logger模块中"><a href="#日志模块类图，源码在egg-logger模块中" class="headerlink" title="日志模块类图，源码在egg-logger模块中"></a>日志模块类图，源码在egg-logger模块中</h3><p><img src="/2017/01/16/egg-logger/classuml.jpg" alt="classuml"><br>类介绍： </p>
+<ul>
+<li>Loggers：日志管理类，根据配置创建多个分类logger，根据当前不同的进程和不同的配置进行创建coreLogger，logger，errorLogger，或者是一些自定义的logger。</li>
+<li>Logger：日志处理基类，处理日志的输出操作，支持三种transport，分别是console、File、JSON File。</li>
+<li>Transport：日志的输出通道基类，派生出文件通道与终端通道。FileBufferTransport是一个输出缓冲，以免每次都调用硬盘进行写操作，控制一定的时间，把数据集中在一起，统一写入。</li>
+</ul>
+<h3 id="日志的类型："><a href="#日志的类型：" class="headerlink" title="日志的类型："></a>日志的类型：</h3><p>在worker与agent下存在两个日志分类logger,分别是logger和coreLogger,会分别写入到不同的日志transport中，一般coreLogger是输出一些重要的日志，logger是一些日常日志。当然配置如果把这两个都写入到同一个tranport，那最后都是在一个地方查看，如都写入到同一个文件。</p>
+<p><strong>错误日志</strong><br>输出日志文件名为:common-error.log，对应的配置节点是errorLogName，记录系统错误日志，文件包括以下几种错误日志：</p>
+<ul>
+<li>master，agent，worker进程中未被用户手动处理的错误</li>
+<li>三个进程中调用logger.error的日志</li>
+</ul>
+<p>实现代码为以下：<br>agent进程:process.on(‘oncaughtException’,this._uncaughtExceptionHandler)处理捕获到的错误并通过this.coreLogger.error(err)输出到错误日志中。代码在egg/core/agent.js中。<br>work进程:是由模块on-error完成的，模块中的app.js文件是通过egg的插件机制加载的，通过app.on(‘error’)把日志输出到错误日志中。代码在on-error/app.js中。</p>
+<p><strong>agent进程日志</strong><br>这里是记录agent进程中的日志，在agent进程中通过this.logger或this.coreLogger都会输出在此文件。</p>
+<p><strong>worker进程日志</strong><br>这里记录的是worker进程中的日志，在worker进程中通过this.logger或this.coreLogger都会输出在此文件。</p>
+<h3 id="哪些对方要记录日志"><a href="#哪些对方要记录日志" class="headerlink" title="哪些对方要记录日志"></a>哪些对方要记录日志</h3><ol>
+<li>业务异常</li>
+<li>对外部api的调用</li>
+<li>非预期的执行</li>
+<li>系统的出入口</li>
+<li>状态的变化</li>
+<li>等等</li>
+</ol>
+<p><strong>相关参考文章</strong></p>
+<ol>
+<li><a href="https://github.com/eggjs/egg" target="_blank" rel="external">egg</a></li>
+<li><a href="http://www.infoq.com/cn/articles/why-and-how-log" target="_blank" rel="external">日志记录的作用和方法</a> </li>
+</ol>
+
+      
+    </div>
+
+  </div>
+
+  <div class="article-footer">
+    <div class="article-meta pull-left">
+
+    
+
+    
+
+    </div>
+
+    
+  </div>
+</article>
+
+  
+
+
+
+    </main>
+
+    <footer class="site-footer">
+  <p class="site-info">
+    Proudly powered by <a href="https://hexo.io/" target="_blank">Hexo</a> and
+    Theme by <a href="https://github.com/CodeDaraW/Hacker" target="_blank">Hacker</a>
+    </br>
+    
+    &copy; 2017 guoyong .yi
+    
+  </p>
+</footer>
+    
+  </div>
+</div>
+</body>
+</html>
