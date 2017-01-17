@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   
-  <title>egg_logger 原码分析 | 易国勇的个人博客 | 易国勇</title>
+  <title>egg_logger 日志功能分析 | 易国勇的个人博客 | 易国勇</title>
 
   
   <meta name="author" content="guoyong .yi">
@@ -22,7 +22,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-  <meta property="og:title" content="egg_logger 原码分析"/>
+  <meta property="og:title" content="egg_logger 日志功能分析"/>
 
   <meta property="og:site_name" content="易国勇的个人博客"/>
 
@@ -50,9 +50,9 @@
   <nav class="site-navigation">
     <ul>
       
-        <li><a href="/">主页</a></li>
+        <li><a href="/">Home</a></li>
       
-        <li><a href="/archives">归档</a></li>
+        <li><a href="/archives">Archives</a></li>
       
     </ul>
   </nav>
@@ -63,7 +63,7 @@
 
   
     
-    <h3 class="article-title"><span>egg_logger 原码分析</span></h3>
+    <h3 class="article-title"><span>egg_logger 日志功能分析</span></h3>
     
   
 
@@ -83,42 +83,53 @@
   <div class="article-content">
     <div class="entry">
       
-        <h3 id="egg-的日志处理"><a href="#egg-的日志处理" class="headerlink" title="egg 的日志处理"></a>egg 的日志处理</h3><p>日志是对系统进行有效的监控，在后期问题排查、功能改进、优化都起到非常大的作用，egg也提供了一套日志的解决方案。</p>
-<h3 id="egg-日志使用方法"><a href="#egg-日志使用方法" class="headerlink" title="egg 日志使用方法"></a>egg 日志使用方法</h3><p>1.定义配置参数，egg的默认配置在egg模块中定义，文件地址:egg/lib/core/config.default.js<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">exports.logger = &#123;</div><div class="line">    dir: path.join(antx[&apos;app.root&apos;], &apos;logs&apos;, antx[&apos;app.name&apos;]),</div><div class="line">    encoding: &apos;utf8&apos;,</div><div class="line">    env: antx.env,  //环境，如env,pro,test</div><div class="line">    level: &apos;INFO&apos;,  //级别</div><div class="line">    consoleLevel: &apos;INFO&apos;,  </div><div class="line">    outputJSON: false,</div><div class="line">    buffer: true,  // 输出到文件时是否启用缓冲</div><div class="line">    appLogName: `$&#123;antx[&apos;app.name&apos;]&#125;-web.log`,</div><div class="line">    coreLogName: &apos;egg-web.log&apos;,</div><div class="line">    agentLogName: &apos;egg-agent.log&apos;,</div><div class="line">    errorLogName: &apos;common-error.log&apos;,</div><div class="line">    coreLogger: &#123; //针对coreLogger分类定义特殊的分类，其它分类也是相同处理，如errorLog，agentLog</div><div class="line">        level: &apos;ERROR&apos;</div><div class="line">    &#125;, </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
-<p>2.egg的配置文件加载是通过<a href="https://eggjs.org/zh-cn/advanced/loader.html" target="_blank" rel="external">Loader机制完成的</a>，所以在项目当中我们可以通过项目配置文件中日志配置参数覆盖默认的日志配置。<br>3.egg日志使用</p>
+        <p>日志是对系统进行有效的监控，在后期问题排查、功能改进、优化都起到非常大的作用，egg框架中提供了一套日志记录的解决方案。 </p>
+<h3 id="egg-日志使用方法"><a href="#egg-日志使用方法" class="headerlink" title="egg 日志使用方法"></a>egg 日志使用方法</h3><p>1.定义日志配置参数，egg定义了一套默认配置参数：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">//文件地址：egg/lib/core/config.default.js</div><div class="line">exports.logger = &#123;</div><div class="line">    dir: path.join(antx[&apos;app.root&apos;], &apos;logs&apos;, antx[&apos;app.name&apos;]),</div><div class="line">    encoding: &apos;utf8&apos;,</div><div class="line">    env: antx.env,  //环境，如env,pro,test</div><div class="line">    level: &apos;INFO&apos;,  //日志输出的级别</div><div class="line">    consoleLevel: &apos;INFO&apos;,  //console通道的输出级别</div><div class="line">    outputJSON: false, //是否输出到json文件中</div><div class="line">    buffer: true,  // 输出到文件时是否启用缓冲</div><div class="line">    appLogName: `$&#123;antx[&apos;app.name&apos;]&#125;-web.log`, //worker进程下的app日志文件名</div><div class="line">    coreLogName: &apos;egg-web.log&apos;,  //worker进程的coreLog日志文件名</div><div class="line">    agentLogName: &apos;egg-agent.log&apos;, //agent的日志文件名</div><div class="line">    errorLogName: &apos;common-error.log&apos;, //错误日志文件名</div><div class="line">    coreLogger: &#123; //针对coreLogger分类定义特殊的分类，其它分类也是相同处理，如errorLog，agentLog</div><div class="line">        level: &apos;ERROR&apos;</div><div class="line">    &#125;, </div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>2.我们也可以针对默认配置做修改，可以在应用的配置文件下定义。egg的配置文件加载是通过<a href="https://eggjs.org/zh-cn/advanced/loader.html" target="_blank" rel="external">Loader机制</a>完成的，应用、插件、框架都可以定义日志配置，只要保证目录结构和文件名是一致，但存在优先级（应用 &gt; 框架 &gt; 插件）。<br>3.可以为不同类别的日志定义不同的参数，如写到不同的文件、日志级别、输出文件地址等，以上代码14行就是针对coreLogger的配置。<br>4.egg日志写入方法</p>
 <ol>
-<li>系统自动记录未被用户捕获到的错误自动输出到common-error.log中。</li>
-<li>在agent或worker进程中通过  this.logger.info(‘hello error’) 进行写入。</li>
-</ol>
-<p><strong>日志的启动过程</strong><br><img src="/2017/01/16/egg-logger/loggerstartup.jpg" alt="loggerstartup"></p>
-<p>可以从图中看到日志是在Application类中创建的，worker进程和agent进程都会new Application类，Agent类是继承于Application类。</p>
-<h3 id="日志模块类图，源码在egg-logger模块中"><a href="#日志模块类图，源码在egg-logger模块中" class="headerlink" title="日志模块类图，源码在egg-logger模块中"></a>日志模块类图，源码在egg-logger模块中</h3><p><img src="/2017/01/16/egg-logger/classuml.jpg" alt="classuml"><br>类介绍： </p>
-<ul>
-<li>Loggers：日志管理类，根据配置创建多个分类logger，根据当前不同的进程和不同的配置进行创建coreLogger，logger，errorLogger，或者是一些自定义的logger。</li>
-<li>Logger：日志处理基类，处理日志的输出操作，支持三种transport，分别是console、File、JSON File。</li>
-<li>Transport：日志的输出通道基类，派生出文件通道与终端通道。FileBufferTransport是一个输出缓冲，以免每次都调用硬盘进行写操作，控制一定的时间，把数据集中在一起，统一写入。</li>
+<li>错误日志都会统一写到common-error.log中，在agent或worker错误级别的日志也会redirect到此文件中。</li>
+<li>在agent或worker进程中通过以下方式写入日志:<ul>
+<li>this.logger.info(‘开始调用接口’)  //写到logger中</li>
+<li>this.coreLogger.info(‘开始调用接口’)  //写到coreLogger中</li>
+<li>this.errorLogger.error(‘调用接口出错’)  //注意这里只能记录错误的日志，其它日志都不会输出到通道中。可以通过this.logger.error(‘调用接口出错’)  代替这种写法</li>
 </ul>
-<h3 id="日志的类型："><a href="#日志的类型：" class="headerlink" title="日志的类型："></a>日志的类型：</h3><p>在worker与agent下存在两个日志分类logger,分别是logger和coreLogger,会分别写入到不同的日志transport中，一般coreLogger是输出一些重要的日志，logger是一些日常日志。当然配置如果把这两个都写入到同一个tranport，那最后都是在一个地方查看，如都写入到同一个文件。</p>
+</li>
+</ol>
+<h3 id="日志的启动过程"><a href="#日志的启动过程" class="headerlink" title="日志的启动过程"></a>日志的启动过程</h3><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/95650ddcd55ceff896d4b6339c807f01.jpg" alt="loggerstartup.jpg"></p>
+<p>可以从图中看到日志是在Application类中创建的，worker进程和agent进程都会new Application类。</p>
+<h3 id="日志模块类图"><a href="#日志模块类图" class="headerlink" title="日志模块类图"></a>日志模块类图</h3><p><img src="http://ata2-img.cn-hangzhou.img-pub.aliyun-inc.com/42dbe38f9ccddeac580c049f5ba73662.jpg" alt="classuml.jpg"><br>类介绍： </p>
+<ul>
+<li>Loggers：日志管理类，根据配置创建errorLogger,logger,coreLogger和customeLogger，根据当前进程(worker或agent)和不同的配置创建coreLogger，logger，errorLogger。</li>
+<li>Logger：日志处理基类，处理日志的输出操作，支持输出到三种通道中，分别是console、File、JSON File。</li>
+<li>Transport：日志的输出通道基类，派生出文件通道与终端通道。FileBufferTransport是针对文件通道做了文件输出缓冲机制，以免每次都调用硬盘进行写操作，控制一定的时间，把数据集中在一起，统一写入。</li>
+</ul>
 <p><strong>错误日志</strong><br>输出日志文件名为:common-error.log，对应的配置节点是errorLogName，记录系统错误日志，文件包括以下几种错误日志：</p>
 <ul>
-<li>master，agent，worker进程中未被用户手动处理的错误</li>
-<li>三个进程中调用logger.error的日志</li>
+<li>master，agent，worker进程中未被用户手动处理的错误<ul>
+<li>agent进程：process.on(‘oncaughtException’,this._uncaughtExceptionHandler)处理捕获到的错误并通过this.coreLogger.error(err)输出到错误日志中。代码在egg/core/agent.js中。</li>
+<li>work进程：由模块on-error完成，app.on(‘error’)会监测此进程的错误并把日志输出到错误日志中。代码在on-error/app.js中。</li>
 </ul>
-<p>实现代码为以下：<br>agent进程:process.on(‘oncaughtException’,this._uncaughtExceptionHandler)处理捕获到的错误并通过this.coreLogger.error(err)输出到错误日志中。代码在egg/core/agent.js中。<br>work进程:是由模块on-error完成的，模块中的app.js文件是通过egg的插件机制加载的，通过app.on(‘error’)把日志输出到错误日志中。代码在on-error/app.js中。</p>
-<p><strong>agent进程日志</strong><br>这里是记录agent进程中的日志，在agent进程中通过this.logger或this.coreLogger都会输出在此文件。</p>
-<p><strong>worker进程日志</strong><br>这里记录的是worker进程中的日志，在worker进程中通过this.logger或this.coreLogger都会输出在此文件。</p>
-<h3 id="哪些对方要记录日志"><a href="#哪些对方要记录日志" class="headerlink" title="哪些对方要记录日志"></a>哪些对方要记录日志</h3><ol>
+</li>
+<li>三个进程中调用logger.error或coreLogger.error输出的日志</li>
+</ul>
+<p><strong>agent进程日志</strong><br>记录agent进程中的日志，在agent进程中通过this.logger或this.coreLogger都会输出在agentLogName配置的文件名中。</p>
+<p><strong>worker进程日志</strong></p>
+<ul>
+<li>this.logger输出的日志是在appLogName配置的文件名中。</li>
+<li>this.coreLogger输出的日志是在coreLogName配置的文件名。   </li>
+</ul>
+<h3 id="记录日志的方法"><a href="#记录日志的方法" class="headerlink" title="记录日志的方法"></a>记录日志的方法</h3><ol>
 <li>业务异常</li>
 <li>对外部api的调用</li>
 <li>非预期的执行</li>
 <li>系统的出入口</li>
-<li>状态的变化</li>
-<li>等等</li>
+<li>状态的变化 </li>
 </ol>
 <p><strong>相关参考文章</strong></p>
 <ol>
 <li><a href="https://github.com/eggjs/egg" target="_blank" rel="external">egg</a></li>
 <li><a href="http://www.infoq.com/cn/articles/why-and-how-log" target="_blank" rel="external">日志记录的作用和方法</a> </li>
+<li><a href="https://tools.ietf.org/html/rfc5424" target="_blank" rel="external">RFC5424</a>定义的日志规范</li>
 </ol>
 
       
